@@ -2,12 +2,16 @@
 require('Ogone/Form.php');
 use Ogone\Form;
 class plugins_ogone_public extends DBOgone{
+    protected $template,$modelSystem;
+    /**
+     * @var array
+     */
     public $urlogone = array(
-        'seturlok'=>'/payment/success/',
-        'seturlnook'=>'/payment/success/',
-        'seturlcancel'=>'/payment/cancel/',
-        'seturlexception'=>'/payment/exception/',
-        'seturlack'=>'/payment/process/'
+        'seturlok'          =>'/payment/success/',
+        'seturlnook'        =>'/payment/success/',
+        'seturlcancel'      =>'/payment/cancel/',
+        'seturlexception'   =>'/payment/exception/',
+        'seturlack'         =>'/payment/process/'
     );
     /**
      * constructeur
@@ -15,6 +19,7 @@ class plugins_ogone_public extends DBOgone{
     public function __construct()
     {
         $this->template = new frontend_controller_plugins();
+        $this->modelSystem = new magixglobal_model_system();
     }
     public function setUrl(){
         return $this->urlogone;
@@ -37,21 +42,29 @@ class plugins_ogone_public extends DBOgone{
      * @return string
      */
     public function getData($setParams){
+        //Charge le fichier de traduction
+        frontend_model_smarty::getInstance()->configLoad(
+            $this->modelSystem->base_path().'plugins/ogone/i18n/public_local_'.frontend_model_template::current_Language().'.conf'
+        );
         $data = $this->setData();
         if($data['formaction'] === 'test'){
             $urlOgone = Form::OGONE_TEST_URL;
         }elseif($data['formaction'] === 'production'){
             $urlOgone = Form::OGONE_PRODUCTION_URL;
         }
-        $url =  magixcjquery_html_helpersHtml::getUrl().'/'.frontend_model_template::current_Language();
+        $url =  magixcjquery_html_helpersHtml::getUrl().'/'.frontend_model_template::current_Language().'/';
         // Define form options
         // See Ogone_Form for list of supported options
         $options = array(
             'sha1InPassPhrase' => $data['passphrase'],
             'formAction'       => $urlOgone,
-            'formSubmitButtonValue'=> '',
+            'formSubmitType'   => 'image',
+            'formSubmitImageUrl'   => $setParams['formSubmitImageUrl'],
+            'formSubmitButtonName'=> $this->template->getConfigVars('form_submit_button'),
+            'formSubmitButtonValue'=> $this->template->getConfigVars('form_submit_button'),
             'formSubmitButtonClass'=> frontend_model_template::current_Language().'_'.'ogoneSubmitButton'
         );
+        $seturl = $this->setUrl();
         // https://github.com/jvandemo/Ogone
         // Define form parameters (see Ogone documentation for list)
         // Default parameter values can be set in Ogone_Form if required
@@ -65,10 +78,10 @@ class plugins_ogone_public extends DBOgone{
             'OPERATION'     => 'SAL',
             'CN'            => 'name of your client',
             'EMAIL'         => 'email of your client',
-            'accepturl'     => $url.$setParams['urlok'],
-            'declineurl'    => $url.$setParams['urlnook'],
-            'exceptionurl'  => $url.$setParams['urlexception'],
-            'cancelurl'     => $url.$setParams['urlcancel'],
+            'accepturl'     => $url.$setParams['plugin'] .$seturl['seturlok'],
+            'declineurl'    => $url.$setParams['plugin'] .$seturl['seturlnook'],
+            'exceptionurl'  => $url.$setParams['plugin'] .$seturl['seturlexception'],
+            'cancelurl'     => $url.$setParams['plugin'] .$seturl['seturlcancel'],
         );
         // Instantiate form
         $form = new Form($options, $params);

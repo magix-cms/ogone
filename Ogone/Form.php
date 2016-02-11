@@ -59,7 +59,10 @@ class Form
 
             // Submit button details
             'formSubmitButtonValue' => 'Pay', // Value of the submit button
-            'formSubmitButtonClass' => 'ogoneSubmitButton' // Class of the submit button
+            'formSubmitButtonClass' => 'ogoneSubmitButton', // Class of the submit button
+            'formSubmitType'        => 'submit', // Class of the submit button
+            'formSubmitImageUrl' =>  '', // URL image of the submit button (only formSubmitType = image)
+            'formSubmitButtonName' =>  'Pay' // Name of the submit button (only formSubmitType = image)
         );
 
     /***********************************************
@@ -459,9 +462,16 @@ class Form
         $html .= '<input type="hidden" name="SHASign" value="' .
             $this->getSha1Sign() . '" class="' .
             $this->config['formElementClass'] . '" />' . PHP_EOL;
-        $html .= '<input type="submit" name="doSubmit" value="' .
-            $this->config['formSubmitButtonValue'] . '" class="' .
-            $this->config['formSubmitButtonClass'] . '" />' . PHP_EOL;
+        if($this->config['formSubmitType'] === 'submit'){
+            $html .= '<input type="submit" name="doSubmit" value="' .
+                $this->config['formSubmitButtonValue'] . '" class="' .
+                $this->config['formSubmitButtonClass'] . '" />' . PHP_EOL;
+        }elseif($this->config['formSubmitType'] === 'image'){
+            $html .= '<input type="image" src="'.
+                $this->config['formSubmitImageUrl'].'"  class="' .
+                $this->config['formSubmitButtonClass'] . '" name="' .
+                $this->config['formSubmitButtonName'] . '" >' . PHP_EOL;
+        }
         $html .= '</form>' . PHP_EOL;
         return $html;
     }
